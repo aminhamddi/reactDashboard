@@ -1,0 +1,119 @@
+// dashboard-web/src/pages/admin/AdminDashboard.jsx
+import React, { useState, useEffect } from 'react';
+import AdminLayout from '../../components/admin/AdminLayout';
+import { getQuestions, getUsers, getCategories, getGravites } from '../../services/adminApi';
+
+export default function AdminDashboard() {
+    const [stats, setStats] = useState({
+        questions: 0,
+        users: 0,
+        categories: 0,
+        gravites: 0,
+    });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadStats();
+    }, []);
+
+    const loadStats = async () => {
+        try {
+            setLoading(true);
+            const [questionsRes, usersRes, categoriesRes, gravitesRes] = await Promise.all([
+                getQuestions(),
+                getUsers(),
+                getCategories(),
+                getGravites(),
+            ]);
+
+            setStats({
+                questions: questionsRes.data.length,
+                users: usersRes.data.length,
+                categories: categoriesRes.data.length,
+                gravites: gravitesRes.data.length,
+            });
+        } catch (error) {
+            console.error('Erreur chargement stats:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <AdminLayout>
+                <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Chargement...</p>
+                </div>
+            </AdminLayout>
+        );
+    }
+
+    return (
+        <AdminLayout>
+            <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                    Vue d'ensemble
+                </h2>
+
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-gray-600">Questions</h3>
+                            <span className="text-3xl">❓</span>
+                        </div>
+                        <p className="text-3xl font-bold text-blue-600">{stats.questions}</p>
+                        <p className="text-xs text-gray-500 mt-1">Questions actives</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-gray-600">Utilisateurs</h3>
+                            <span className="text-3xl">👥</span>
+                        </div>
+                        <p className="text-3xl font-bold text-green-600">{stats.users}</p>
+                        <p className="text-xs text-gray-500 mt-1">Comptes actifs</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-gray-600">Catégories</h3>
+                            <span className="text-3xl">📁</span>
+                        </div>
+                        <p className="text-3xl font-bold text-purple-600">{stats.categories}</p>
+                        <p className="text-xs text-gray-500 mt-1">Catégories</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-gray-600">Gravités</h3>
+                            <span className="text-3xl">⚠️</span>
+                        </div>
+                        <p className="text-3xl font-bold text-orange-600">{stats.gravites}</p>
+                        <p className="text-xs text-gray-500 mt-1">Niveaux de gravité</p>
+                    </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <h3 className="text-lg font-semibold mb-4">Actions rapides</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition text-left">
+                            <div className="text-2xl mb-2">➕</div>
+                            <h4 className="font-semibold text-gray-900">Nouvelle question</h4>
+                            <p className="text-sm text-gray-600">Ajouter une question d'audit</p>
+                        </button>
+
+                        <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition text-left">
+                            <div className="text-2xl mb-2">👤</div>
+                            <h4 className="font-semibold text-gray-900">Nouvel utilisateur</h4>
+                            <p className="text-sm text-gray-600">Créer un compte utilisateur</p>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </AdminLayout>
+    );
+}
