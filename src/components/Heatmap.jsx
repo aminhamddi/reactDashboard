@@ -129,7 +129,7 @@ export default function Heatmap({ data, tb }) {
 
                 {/* Debug info */}
                 <div className="text-xs text-gray-500 mb-3">
-                    {plants.length} plants × {categories.length} {tb}
+                    {plants.length} plants × {services.length} {tb}
                 </div>
 
                 <div className="overflow-x-auto">
@@ -150,7 +150,7 @@ export default function Heatmap({ data, tb }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {categories.map((service) => (
+                            {services.map((service) => (
                                 <tr key={service} className="border-t border-gray-200 hover:bg-gray-50">
                                     <td className="px-4 py-2 text-sm font-medium text-gray-700">
                                         {service}

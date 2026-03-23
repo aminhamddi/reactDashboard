@@ -32,7 +32,8 @@ export default function Login() {
                 console.error('Erreur récupération user:', err);
             }
 
-            navigate('/dashboard');
+            // Force page reload to ensure App.jsx re-validates token
+            window.location.href = '/dashboard';
         } catch (err) {
             setError('Email ou mot de passe incorrect');
             console.error(err);

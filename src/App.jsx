@@ -11,6 +11,8 @@ import AdminQuestions from './pages/admin/AdminQuestions';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminCategories from './pages/admin/AdminCategories';
 import AdminGravites from './pages/admin/AdminGravites';
+import AdminPlants from './pages/admin/AdminPlants';
+import AdminServices from './pages/admin/AdminServices';
 import { getToken, removeToken } from './services/auth';
 
 function App() {
@@ -23,6 +25,7 @@ function App() {
       
       if (!token) {
         setIsLoading(false);
+        setIsAuthenticated(false);
         return;
       }
 
@@ -128,6 +131,22 @@ function App() {
           element={
             <ProtectedAdminRoute>
               <AdminGravites />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/plants"
+          element={
+            <ProtectedAdminRoute>
+              <AdminPlants />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/services"
+          element={
+            <ProtectedAdminRoute>
+              <AdminServices />
             </ProtectedAdminRoute>
           }
         />

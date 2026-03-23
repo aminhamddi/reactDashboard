@@ -15,6 +15,8 @@ export default function AdminLayout({ children }) {
 
     const menuItems = [
         { path: '/admin', label: 'Dashboard', icon: '📊' },
+        { path: '/admin/plants', label: 'Plants', icon: '🏭' },
+        { path: '/admin/services', label: 'Services', icon: '🔧' },
         { path: '/admin/questions', label: 'Questions', icon: '❓' },
         { path: '/admin/users', label: 'Utilisateurs', icon: '👥' },
         { path: '/admin/categories', label: 'Catégories', icon: '📁' },

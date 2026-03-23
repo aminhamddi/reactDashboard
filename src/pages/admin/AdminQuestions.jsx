@@ -79,7 +79,7 @@ export default function AdminQuestions() {
             texte: question.texte,
             categorie_id: question.categorie_id,
             gravite_id: question.gravite_id,
-            service_ids: question.services ? question.services.map(s => s.id) : [],
+            service_ids: question.services_id,
         });
         setEditingId(question.id);
         setShowForm(true);
@@ -103,7 +103,7 @@ export default function AdminQuestions() {
             texte: '',
             categorie_id: 1,
             gravite_id: 1,
-            service_ids: [],
+            service_ids: 1,
         });
         setEditingId(null);
         setShowForm(false);
@@ -212,7 +212,7 @@ export default function AdminQuestions() {
                                 </label>
                                 <select
                                     multiple
-                                    value={formData.service_ids}
+                                    value={formData.service_id}
                                     onChange={(e) => {
                                         const selectedIds = Array.from(e.target.selectedOptions, option => parseInt(option.value));
                                         setFormData({ ...formData, service_ids: selectedIds });

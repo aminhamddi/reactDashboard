@@ -119,4 +119,14 @@ export const prioritizeAction = (actionId) =>
 export const getRecommendations = () =>
     api.get('/api/ml/recommend');
 
+// ===== VISUALISATION =====
+export const getSiteRanking = () =>
+    api.get('/api/dashboard/ranking/site');
+
+export const getProjectRanking = () =>
+    api.get('/api/dashboard/ranking/project');
+
+export const getServiceMatrix = () =>
+    api.get('/api/dashboard/service-matrix');
+
 export default api;

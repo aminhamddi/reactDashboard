@@ -75,10 +75,38 @@ export const updateService = (id, data) =>
 export const deleteService = (id) =>
     api.delete(`/api/services/${id}`);
 
+// ===== PLANTS =====
+export const getPlants = () =>
+    api.get('/api/plants');
+
+export const createPlant = (data) =>
+    api.post('/api/plants', data);
+
+export const updatePlant = (id, data) =>
+    api.put(`/api/plants/${id}`, data);
+
+export const deletePlant = (id) =>
+    api.delete(`/api/plants/${id}`);
+
+// ===== PROJECTS =====
+export const getProjects = () =>
+    api.get('/api/projects');
+
+export const createProject = (data) =>
+    api.post('/api/projects', data);
+
+export const updateProject = (id, data) =>
+    api.put(`/api/projects/${id}`, data);
+
+export const deleteProject = (id) =>
+    api.delete(`/api/projects/${id}`);
+
 export default {
     getQuestions, createQuestion, updateQuestion, deleteQuestion,
     getUsers, createUser, updateUser, deleteUser, toggleUserStatus,
     getCategories, createCategory, updateCategory, deleteCategory,
     getGravites, createGravite, updateGravite, deleteGravite,
     getServices, createService, updateService, deleteService,
+    getPlants, createPlant, updatePlant, deletePlant,
+    getProjects, createProject, updateProject, deleteProject,
 };

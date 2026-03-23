@@ -1,10 +1,12 @@
 // dashboard-web/src/pages/admin/AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { getQuestions, getUsers, getCategories, getGravites } from '../../services/adminApi';
+import { getQuestions, getUsers, getCategories, getGravites, getPlants, getServices } from '../../services/adminApi';
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState({
+        plants: 0,
+        services: 0,
         questions: 0,
         users: 0,
         categories: 0,
@@ -19,7 +21,9 @@ export default function AdminDashboard() {
     const loadStats = async () => {
         try {
             setLoading(true);
-            const [questionsRes, usersRes, categoriesRes, gravitesRes] = await Promise.all([
+            const [plantsRes, servicesRes, questionsRes, usersRes, categoriesRes, gravitesRes] = await Promise.all([
+                getPlants(),
+                getServices(),
                 getQuestions(),
                 getUsers(),
                 getCategories(),
@@ -27,6 +31,8 @@ export default function AdminDashboard() {
             ]);
 
             setStats({
+                plants: plantsRes.data.length,
+                services: servicesRes.data.length,
                 questions: questionsRes.data.length,
                 users: usersRes.data.length,
                 categories: categoriesRes.data.length,
@@ -58,13 +64,31 @@ export default function AdminDashboard() {
                 </h2>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-gray-600">Plants</h3>
+                            <span className="text-3xl">🏭</span>
+                        </div>
+                        <p className="text-3xl font-bold text-blue-600">{stats.plants}</p>
+                        <p className="text-xs text-gray-500 mt-1">Usines</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-gray-600">Services</h3>
+                            <span className="text-3xl">🔧</span>
+                        </div>
+                        <p className="text-3xl font-bold text-cyan-600">{stats.services}</p>
+                        <p className="text-xs text-gray-500 mt-1">Départements</p>
+                    </div>
+
                     <div className="bg-white rounded-lg shadow-md p-6">
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-sm font-medium text-gray-600">Questions</h3>
                             <span className="text-3xl">❓</span>
                         </div>
-                        <p className="text-3xl font-bold text-blue-600">{stats.questions}</p>
+                        <p className="text-3xl font-bold text-indigo-600">{stats.questions}</p>
                         <p className="text-xs text-gray-500 mt-1">Questions actives</p>
                     </div>
 
@@ -74,7 +98,7 @@ export default function AdminDashboard() {
                             <span className="text-3xl">👥</span>
                         </div>
                         <p className="text-3xl font-bold text-green-600">{stats.users}</p>
-                        <p className="text-xs text-gray-500 mt-1">Comptes actifs</p>
+                        <p className="text-xs text-gray-500 mt-1">Comptes</p>
                     </div>
 
                     <div className="bg-white rounded-lg shadow-md p-6">
@@ -92,7 +116,7 @@ export default function AdminDashboard() {
                             <span className="text-3xl">⚠️</span>
                         </div>
                         <p className="text-3xl font-bold text-orange-600">{stats.gravites}</p>
-                        <p className="text-xs text-gray-500 mt-1">Niveaux de gravité</p>
+                        <p className="text-xs text-gray-500 mt-1">Niveaux</p>
                     </div>
                 </div>
 

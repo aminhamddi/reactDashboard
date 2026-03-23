@@ -4,7 +4,10 @@ import {
     getChartsData,
     getCategoryScores,
     getHeatmapData,
-    getHeatmapData2
+    getHeatmapData2,
+    getSiteRanking,
+    getProjectRanking,
+    getServiceMatrix,
 } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { removeToken, getUser } from '../services/auth';
@@ -15,6 +18,9 @@ import LineChart from '../components/LineChart';
 import RadarChart from '../components/RadarChart';
 import BarChart from '../components/BarChart';
 import Heatmap from '../components/Heatmap';
+import SiteRanking from '../components/SiteRanking';
+import ProjectRanking from '../components/ProjectRanking';
+import ServiceSiteMatrix from '../components/ServiceSiteMatrix';
 
 
 export default function Dashboard() {
@@ -24,6 +30,9 @@ export default function Dashboard() {
     const [barData, setBarData] = useState([]);
     const [heatmapData, setHeatmapData] = useState([]);
     const [heatmapDataSercice, setHeatmapDataService] = useState([])
+    const [siteRanking, setSiteRanking] = useState([]);
+    const [projectRanking, setProjectRanking] = useState([]);
+    const [serviceMatrix, setServiceMatrix] = useState(null);
     const [isLive, setIsLive] = useState(false);
     const [lastUpdatedPlant, setLastUpdatedPlant] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -64,19 +73,19 @@ export default function Dashboard() {
             setLoading(true);
 
             // CHARGER TOUTES LES DONNÉES
-            const [statsRes, chartsRes, categoryRes, heatmapRes, heatmapResService] = await Promise.all([
+            const [statsRes, chartsRes, categoryRes, heatmapRes, heatmapResService, siteRankRes, projectRankRes, serviceMatrixRes] = await Promise.all([
                 getDashboardStats(),
                 getChartsData({ months: 6 }),
                 getCategoryScores(),
                 getHeatmapData(),
                 getHeatmapData2(),
+                getSiteRanking(),
+                getProjectRanking(),
+                getServiceMatrix(),
             ]);
 
             console.log('📊 Stats reçues:', statsRes.data);
             console.log('📈 Charts reçus:', chartsRes.data);
-            console.log('🎯 Categories reçues:', categoryRes.data);
-            console.log('🔥 Heatmap reçue:', heatmapRes.data);
-            console.log('🔥 Heatmap reçue:', heatmapResService.data)
 
             setStats(statsRes.data);
             setChartsData(chartsRes.data);
@@ -84,6 +93,9 @@ export default function Dashboard() {
             setRadarData(categoryRes.data);
             setHeatmapData(heatmapRes.data);
             setHeatmapDataService(heatmapResService.data);
+            setSiteRanking(siteRankRes.data);
+            setProjectRanking(projectRankRes.data);
+            setServiceMatrix(serviceMatrixRes.data);
 
             // Bar chart depuis stats RÉELLES
             if (statsRes.data.plants && statsRes.data.plants.length > 0) {
@@ -93,7 +105,6 @@ export default function Dashboard() {
                     audits: plant.audits_count,
                 }));
                 setBarData(barChartData);
-                console.log('📊 BarChart data:', barChartData);
             }
 
             setError('');
@@ -233,6 +244,8 @@ export default function Dashboard() {
                             score={plant.score}
                             auditsCount={plant.audits_count}
                             trend={plant.trend}
+                            target={plant.target}
+                            stTarget={plant.st_target}
                             isLive={isLive && plant.name === lastUpdatedPlant}
                         />
                     ))}
@@ -266,6 +279,17 @@ export default function Dashboard() {
                         <Heatmap data={heatmapDataSercice} tb={"Service"} />
                     </div>
                 )}
+
+                {/* ===== VISUALISATION RÉSULTAT D'AUDIT (from Excel) ===== */}
+
+                {/* Classement Site & Projet */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    {siteRanking.length > 0 && <SiteRanking data={siteRanking} />}
+                    {projectRanking.length > 0 && <ProjectRanking data={projectRanking} />}
+                </div>
+
+                {/* Service × Site Matrix */}
+                {serviceMatrix && <ServiceSiteMatrix data={serviceMatrix} />}
             </main>
         </div>
     );
