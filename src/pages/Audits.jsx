@@ -56,7 +56,7 @@ export default function Audits() {
                             {audits.map((audit) => (
                                 <tr key={audit.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 text-sm">{audit.id}</td>
-                                    <td className="px-6 py-4 text-sm font-medium">{audit.plant}</td>
+                                    <td className="px-6 py-4 text-sm font-medium">{audit.plant?.nom || audit.plant || '—'}</td>
                                     <td className="px-6 py-4 text-sm">{audit.date_audit}</td>
                                     <td className="px-6 py-4 text-sm">
                                         <span className={`font-semibold ${audit.score_global >= 0.8 ? 'text-green-600' :
@@ -67,11 +67,11 @@ export default function Audits() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-sm">
-                                        <span className={`px-2 py-1 rounded-full text-xs ${audit.statut === 'finalise' ? 'bg-green-100 text-green-800' :
+                                        <span className={`px-2 py-1 rounded-full text-xs ${audit.statut === 'finalized' ? 'bg-green-100 text-green-800' :
                                                 audit.statut === 'draft' ? 'bg-gray-100 text-gray-800' :
                                                     'bg-yellow-100 text-yellow-800'
                                             }`}>
-                                            {audit.statut}
+                                            {audit.statut === 'finalized' ? 'Finalisé' : audit.statut === 'draft' ? 'Brouillon' : audit.statut}
                                         </span>
                                     </td>
                                 </tr>

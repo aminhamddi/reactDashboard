@@ -1,11 +1,12 @@
 // dashboard-web/src/pages/admin/AdminUsers.jsx
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { getUsers, createUser, updateUser, deleteUser, toggleUserStatus, getServices } from '../../services/adminApi';
+import { getUsers, createUser, updateUser, deleteUser, toggleUserStatus, getServices, getPlants } from '../../services/adminApi';
 
 export default function AdminUsers() {
     const [users, setUsers] = useState([]);
     const [services, setServices] = useState([]);
+    const [plants, setPlants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -14,12 +15,11 @@ export default function AdminUsers() {
         password: '',
         nom: '',
         role: 'auditeur',
-        plant: 'Sousse',
+        plant_id: '',
         service_id: '',
     });
 
     const roles = ['admin', 'manager', 'auditeur', 'responsable', 'lecteur'];
-    const plants = ['Sousse', 'Monastir', 'Sfax', 'LTN3', 'LTN4', 'WOTNMS', 'menzel hayet'];
 
     useEffect(() => {
         loadUsers();
@@ -28,12 +28,14 @@ export default function AdminUsers() {
     const loadUsers = async () => {
         try {
             setLoading(true);
-            const [usersRes, servicesRes] = await Promise.all([
+            const [usersRes, servicesRes, plantsRes] = await Promise.all([
                 getUsers(),
                 getServices(),
+                getPlants(),
             ]);
             setUsers(usersRes.data);
             setServices(servicesRes.data);
+            setPlants(plantsRes.data);
         } catch (error) {
             console.error('Erreur:', error);
         } finally {
@@ -47,7 +49,9 @@ export default function AdminUsers() {
         try {
             if (editingId) {
                 const updateData = { ...formData };
-                delete updateData.password; // Ne pas envoyer password vide
+                delete updateData.password;
+                if (!updateData.plant_id) updateData.plant_id = null;
+                if (!updateData.service_id) updateData.service_id = null;
                 await updateUser(editingId, updateData);
                 alert('Utilisateur mis à jour');
             } else {
@@ -69,7 +73,7 @@ export default function AdminUsers() {
             password: '',
             nom: user.nom,
             role: user.role,
-            plant: user.plant,
+            plant_id: user.plant_id || '',
             service_id: user.service_id || '',
         });
         setEditingId(user.id);
@@ -103,7 +107,7 @@ export default function AdminUsers() {
             password: '',
             nom: '',
             role: 'auditeur',
-            plant: 'Sousse',
+            plant_id: '',
             service_id: '',
         });
         setEditingId(null);
@@ -224,14 +228,15 @@ export default function AdminUsers() {
                                         Plant *
                                     </label>
                                     <select
-                                        value={formData.plant}
-                                        onChange={(e) => setFormData({ ...formData, plant: e.target.value })}
+                                        value={formData.plant_id}
+                                        onChange={(e) => setFormData({ ...formData, plant_id: parseInt(e.target.value) || '' })}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                         required
                                     >
+                                        <option value="">Sélectionner un plant</option>
                                         {plants.map((plant) => (
-                                            <option key={plant} value={plant}>
-                                                {plant}
+                                            <option key={plant.id} value={plant.id}>
+                                                {plant.nom}
                                             </option>
                                         ))}
                                     </select>
