@@ -10,7 +10,8 @@ export default function ProtectedAdminRoute({ children }) {
         return <Navigate to="/login" />;
     }
 
-    if (user.role !== 'admin') {
+    // Allow admin and manager roles
+    if (user.role !== 'admin' && user.role !== 'manager') {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="bg-white p-8 rounded-lg shadow-md max-w-md text-center">
@@ -19,7 +20,7 @@ export default function ProtectedAdminRoute({ children }) {
                         Accès refusé
                     </h2>
                     <p className="text-gray-600 mb-4">
-                        Vous devez être administrateur pour accéder à cette page.
+                        Vous devez être administrateur ou gestionnaire pour accéder à cette page.
                     </p>
                     <p className="text-sm text-gray-500">
                         Votre rôle actuel : <span className="font-semibold">{user.role}</span>

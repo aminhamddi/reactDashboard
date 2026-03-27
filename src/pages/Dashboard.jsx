@@ -8,6 +8,8 @@ import {
     getSiteRanking,
     getProjectRanking,
     getServiceMatrix,
+    getActionsStats,
+    getDeviationsByService,
 } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { removeToken, getUser } from '../services/auth';
@@ -33,6 +35,8 @@ export default function Dashboard() {
     const [siteRanking, setSiteRanking] = useState([]);
     const [projectRanking, setProjectRanking] = useState([]);
     const [serviceMatrix, setServiceMatrix] = useState(null);
+    const [actionsStats, setActionsStats] = useState(null);
+    const [deviationsByService, setDeviationsByService] = useState(null);
     const [isLive, setIsLive] = useState(false);
     const [lastUpdatedPlant, setLastUpdatedPlant] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -73,7 +77,7 @@ export default function Dashboard() {
             setLoading(true);
 
             // CHARGER TOUTES LES DONNÉES
-            const [statsRes, chartsRes, categoryRes, heatmapRes, heatmapResService, siteRankRes, projectRankRes, serviceMatrixRes] = await Promise.all([
+            const [statsRes, chartsRes, categoryRes, heatmapRes, heatmapResService, siteRankRes, projectRankRes, serviceMatrixRes, actionsStatsRes, deviationsRes] = await Promise.all([
                 getDashboardStats(),
                 getChartsData({ months: 6 }),
                 getCategoryScores(),
@@ -82,6 +86,8 @@ export default function Dashboard() {
                 getSiteRanking(),
                 getProjectRanking(),
                 getServiceMatrix(),
+                getActionsStats().catch(() => ({ data: { total: 0, total_nlp: 0, par_statut: {}, par_type: {}, par_priorite: {} } })),
+                getDeviationsByService().catch(() => ({ data: { services: [], total: 0 } })),
             ]);
 
             console.log('📊 Stats reçues:', statsRes.data);
@@ -96,6 +102,8 @@ export default function Dashboard() {
             setSiteRanking(siteRankRes.data);
             setProjectRanking(projectRankRes.data);
             setServiceMatrix(serviceMatrixRes.data);
+            setActionsStats(actionsStatsRes.data);
+            setDeviationsByService(deviationsRes.data);
 
             // Bar chart depuis stats RÉELLES
             if (statsRes.data.plants && statsRes.data.plants.length > 0) {
@@ -290,6 +298,93 @@ export default function Dashboard() {
 
                 {/* Service × Site Matrix */}
                 {serviceMatrix && <ServiceSiteMatrix data={serviceMatrix} />}
+
+                {/* Déviations par Service */}
+                {deviationsByService && deviationsByService.total > 0 && (
+                    <div className="mt-8">
+                        <h2 className="text-xl font-bold mb-4">Déviations par Service ({deviationsByService.total} total)</h2>
+                        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            <table className="w-full text-sm">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-600">Service</th>
+                                        <th className="px-4 py-3 text-center font-medium text-gray-600">Total</th>
+                                        <th className="px-4 py-3 text-center font-medium text-green-700">AA</th>
+                                        <th className="px-4 py-3 text-center font-medium text-yellow-700">DMI</th>
+                                        <th className="px-4 py-3 text-center font-medium text-red-700">DMA</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y">
+                                    {deviationsByService.services.filter(s => s.total > 0).map((s) => (
+                                        <tr key={s.service} className="hover:bg-gray-50">
+                                            <td className="px-4 py-3 font-medium">{s.service}</td>
+                                            <td className="px-4 py-3 text-center font-bold">{s.total}</td>
+                                            <td className="px-4 py-3 text-center text-green-600">{s.AA || '—'}</td>
+                                            <td className="px-4 py-3 text-center text-yellow-600">{s.DMI || '—'}</td>
+                                            <td className="px-4 py-3 text-center text-red-600">{s.DMA || '—'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* Actions Correctives NLP */}
+                {actionsStats && actionsStats.total > 0 && (
+                    <div className="mt-8">
+                        <h2 className="text-xl font-bold mb-4">Actions Correctives (NLP)</h2>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <div className="bg-white rounded-xl p-4 shadow-sm border">
+                                <p className="text-sm text-gray-500">Total Actions</p>
+                                <p className="text-2xl font-bold">{actionsStats.total}</p>
+                            </div>
+                            <div className="bg-white rounded-xl p-4 shadow-sm border">
+                                <p className="text-sm text-gray-500">Générées par NLP</p>
+                                <p className="text-2xl font-bold text-blue-600">{actionsStats.total_nlp}</p>
+                            </div>
+                            <div className="bg-white rounded-xl p-4 shadow-sm border">
+                                <p className="text-sm text-gray-500">En attente</p>
+                                <p className="text-2xl font-bold text-yellow-600">{(actionsStats.par_statut?.ouverte || 0)}</p>
+                            </div>
+                            <div className="bg-white rounded-xl p-4 shadow-sm border">
+                                <p className="text-sm text-gray-500">En cours</p>
+                                <p className="text-2xl font-bold text-green-600">{(actionsStats.par_statut?.en_cours || 0)}</p>
+                            </div>
+                        </div>
+                        {actionsStats.par_type && Object.keys(actionsStats.par_type).length > 0 && (
+                            <div className="bg-white rounded-xl p-4 shadow-sm border">
+                                <p className="text-sm text-gray-500 mb-3">Répartition par type</p>
+                                <div className="flex flex-wrap gap-3">
+                                    {Object.entries(actionsStats.par_type).filter(([,v]) => v > 0).map(([type, count]) => (
+                                        <span key={type} className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100">
+                                            {type}: <strong>{count}</strong>
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {actionsStats.par_priorite && Object.keys(actionsStats.par_priorite).filter(([,v]) => v > 0).length > 0 && (
+                            <div className="mt-4 bg-white rounded-xl p-4 shadow-sm border">
+                                <p className="text-sm text-gray-500 mb-3">Par priorité (Critique/Haute importantes)</p>
+                                <div className="flex flex-wrap gap-3">
+                                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700">
+                                        Critique: <strong>{actionsStats.par_priorite.Critique || 0}</strong>
+                                    </span>
+                                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-700">
+                                        Haute: <strong>{actionsStats.par_priorite.Haute || 0}</strong>
+                                    </span>
+                                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-700">
+                                        Moyenne: <strong>{actionsStats.par_priorite.Moyenne || 0}</strong>
+                                    </span>
+                                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
+                                        Basse: <strong>{actionsStats.par_priorite.Basse || 0}</strong>
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
             </main>
         </div>
     );

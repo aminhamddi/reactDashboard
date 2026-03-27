@@ -112,6 +112,9 @@ export const getAllActions = (skip = 0, limit = 100) =>
 export const getActionsStats = () =>
     api.get('/api/dashboard/actions/stats');
 
+export const getDeviationsByService = (plant) =>
+    api.get('/api/dashboard/deviations/by-service', { params: plant ? { plant } : {} });
+
 // ===== ML =====
 export const prioritizeAction = (actionId) =>
     api.post(`/api/ml/prioritize/${actionId}`);

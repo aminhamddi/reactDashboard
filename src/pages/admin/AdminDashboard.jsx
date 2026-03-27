@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { getQuestions, getUsers, getCategories, getGravites, getPlants, getServices } from '../../services/adminApi';
+import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
+    const navigate = useNavigate();
     const [stats, setStats] = useState({
         plants: 0,
         services: 0,
@@ -124,13 +126,13 @@ export default function AdminDashboard() {
                 <div className="bg-white rounded-lg shadow-md p-6">
                     <h3 className="text-lg font-semibold mb-4">Actions rapides</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition text-left">
+                        <button onClick={() => navigate('/admin/questions')} className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition text-left">
                             <div className="text-2xl mb-2">➕</div>
                             <h4 className="font-semibold text-gray-900">Nouvelle question</h4>
                             <p className="text-sm text-gray-600">Ajouter une question d'audit</p>
                         </button>
 
-                        <button className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition text-left">
+                        <button onClick={() => navigate('/admin/users')} className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition text-left">
                             <div className="text-2xl mb-2">👤</div>
                             <h4 className="font-semibold text-gray-900">Nouvel utilisateur</h4>
                             <p className="text-sm text-gray-600">Créer un compte utilisateur</p>

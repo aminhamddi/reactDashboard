@@ -13,15 +13,20 @@ export default function AdminLayout({ children }) {
         navigate('/login');
     };
 
+    // Menu items - Include users only for admin
     const menuItems = [
         { path: '/admin', label: 'Dashboard', icon: '📊' },
         { path: '/admin/plants', label: 'Plants', icon: '🏭' },
         { path: '/admin/services', label: 'Services', icon: '🔧' },
         { path: '/admin/questions', label: 'Questions', icon: '❓' },
-        { path: '/admin/users', label: 'Utilisateurs', icon: '👥' },
         { path: '/admin/categories', label: 'Catégories', icon: '📁' },
         { path: '/admin/gravites', label: 'Gravités', icon: '⚠️' },
     ];
+
+    // Add users only for admin role
+    if (user?.role === 'admin') {
+        menuItems.push({ path: '/admin/users', label: 'Utilisateurs', icon: '👥' });
+    }
 
     return (
         <div className="min-h-screen bg-gray-100">
