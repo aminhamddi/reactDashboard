@@ -43,6 +43,7 @@ export default function Dashboard() {
     const [error, setError] = useState('');
     const navigate = useNavigate();
     const user = getUser();
+    const canAccessAdmin = user?.role === 'admin' || user?.role === 'manager';
 
     useEffect(() => {
         loadData();
@@ -190,7 +191,7 @@ export default function Dashboard() {
                         >
                             Actions
                         </button>
-                        {user?.role === 'admin' && (
+                        {canAccessAdmin && (
                             <button
                                 onClick={() => navigate('/admin')}
                                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
