@@ -12,9 +12,11 @@ class WebSocketService {
             return;
         }
 
-        // Use consistent backend URL (from env or default to localhost)
+        // Auto-detect WebSocket URL from current page location
         const wsHost = import.meta.env.VITE_WS_HOST || window.location.hostname;
-        const wsUrl = `ws://${wsHost}:8000/ws/${plant}`;
+        const wsPort = window.location.port ? `:${window.location.port}` : ':8000';
+        const wsProtocol = 'ws:';
+        const wsUrl = `${wsProtocol}//${wsHost}${wsPort}/ws/${plant}`;
         console.log(`Connexion WebSocket Dashboard à : ${wsUrl}`);
 
         try {
@@ -29,8 +31,7 @@ class WebSocketService {
                 try {
                     const data = JSON.parse(event.data);
                     console.log('Message WebSocket reçu:', data);
-                    
-                    // Gestion des types de messages (compatibilité avec le backend)
+
                     if (data.type === 'AUDIT_FINALIZED') {
                         this.emit('auditFinalized', data.data || data);
                     } else if (data.type === 'ACTION_ASSIGNED') {
@@ -45,8 +46,7 @@ class WebSocketService {
 
             this.socket.onclose = (event) => {
                 console.log('Dashboard WebSocket déconnecté:', event.reason);
-                
-                // Tentative de reconnexion automatique
+
                 if (this.reconnectAttempts < this.maxReconnectAttempts) {
                     this.reconnectAttempts++;
                     const delay = 2000 * this.reconnectAttempts;

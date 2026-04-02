@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { getToken, removeToken } from './auth';
 
-// Use backend URL with fallback to localhost for development
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:8000`;
+// Backend URL from env var — set VITE_API_URL=http://localhost:8000 for standalone dev
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Instance axios avec token
 const api = axios.create({
@@ -56,7 +56,6 @@ export const getChartsData = (params) =>
 export const getPlantsList = () =>
     api.get('/api/dashboard/plants');
 
-// DONNÉES RÉELLES
 export const getCategoryScores = () =>
     api.get('/api/dashboard/categories');
 
@@ -69,8 +68,6 @@ export const getHeatmapData2 = () =>
 export const getPlantCategoryScores = (plant) =>
     api.get(`/api/dashboard/categories/${plant}`);
 
-
-
 // ===== AUDITS =====
 export const getAudits = (filters) =>
     api.get('/api/audits', { params: filters });
@@ -80,6 +77,15 @@ export const getAudit = (id) =>
 
 export const createAudit = (data) =>
     api.post('/api/audits', data);
+
+export const updateAudit = (id, data) =>
+    api.put(`/api/audits/${id}`, data);
+
+export const archiveAudit = (id) =>
+    api.delete(`/api/audits/${id}`);
+
+export const unarchiveAudit = (id) =>
+    api.patch(`/api/audits/${id}/unarchive`);
 
 export const finalizeAudit = (id) =>
     api.patch(`/api/audits/${id}/finalize`);
@@ -105,15 +111,36 @@ export const getActionsByAudit = (auditId) =>
 export const getActionsByType = (auditId) =>
     api.get(`/api/nlp/actions/${auditId}/by-type`);
 
-// TOUTES LES ACTIONS
-export const getAllActions = (skip = 0, limit = 100) =>
-    api.get('/api/nlp/actions/all', { params: { skip, limit } });
+// Uses dashboard router (works even without NLP modules)
+export const getAllActions = (skip = 0, limit = 100, dateFrom, dateTo, plantId, auditeurId, statut, type, priorite) => {
+    const params = { skip, limit };
+    if (dateFrom) params.date_from = dateFrom;
+    if (dateTo) params.date_to = dateTo;
+    if (plantId) params.plant_id = plantId;
+    if (auditeurId) params.auditeur_id = auditeurId;
+    if (statut) params.statut = statut;
+    if (type) params.type = type;
+    if (priorite) params.priorite = priorite;
+    return api.get('/api/dashboard/actions/all', { params });
+};
+
+export const getActionsFilters = () =>
+    api.get('/api/dashboard/actions/filters');
 
 export const getActionsStats = () =>
     api.get('/api/dashboard/actions/stats');
 
 export const getDeviationsByService = (plant) =>
     api.get('/api/dashboard/deviations/by-service', { params: plant ? { plant } : {} });
+
+export const acceptAction = (id) =>
+    api.patch(`/api/dashboard/actions/${id}/accept`);
+
+export const closeAction = (id) =>
+    api.patch(`/api/dashboard/actions/${id}/close`);
+
+export const rejectAction = (id) =>
+    api.patch(`/api/dashboard/actions/${id}/reject`);
 
 // ===== ML =====
 export const prioritizeAction = (actionId) =>

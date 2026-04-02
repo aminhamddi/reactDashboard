@@ -4,7 +4,6 @@ import {
     getChartsData,
     getCategoryScores,
     getHeatmapData,
-    getHeatmapData2,
     getSiteRanking,
     getProjectRanking,
     getServiceMatrix,
@@ -31,7 +30,6 @@ export default function Dashboard() {
     const [radarData, setRadarData] = useState([]);
     const [barData, setBarData] = useState([]);
     const [heatmapData, setHeatmapData] = useState([]);
-    const [heatmapDataSercice, setHeatmapDataService] = useState([])
     const [siteRanking, setSiteRanking] = useState([]);
     const [projectRanking, setProjectRanking] = useState([]);
     const [serviceMatrix, setServiceMatrix] = useState(null);
@@ -78,12 +76,11 @@ export default function Dashboard() {
             setLoading(true);
 
             // CHARGER TOUTES LES DONNÉES
-            const [statsRes, chartsRes, categoryRes, heatmapRes, heatmapResService, siteRankRes, projectRankRes, serviceMatrixRes, actionsStatsRes, deviationsRes] = await Promise.all([
+            const [statsRes, chartsRes, categoryRes, heatmapRes, siteRankRes, projectRankRes, serviceMatrixRes, actionsStatsRes, deviationsRes] = await Promise.all([
                 getDashboardStats(),
                 getChartsData({ months: 6 }),
                 getCategoryScores(),
                 getHeatmapData(),
-                getHeatmapData2(),
                 getSiteRanking(),
                 getProjectRanking(),
                 getServiceMatrix(),
@@ -99,7 +96,6 @@ export default function Dashboard() {
 
             setRadarData(categoryRes.data);
             setHeatmapData(heatmapRes.data);
-            setHeatmapDataService(heatmapResService.data);
             setSiteRanking(siteRankRes.data);
             setProjectRanking(projectRankRes.data);
             setServiceMatrix(serviceMatrixRes.data);
@@ -280,12 +276,6 @@ export default function Dashboard() {
                 {heatmapData.length > 0 && (
                     <div className="mb-8">
                         <Heatmap data={heatmapData} tb={"Catégorie"} />
-                    </div>
-                )}
-                {/* Heatmap - Service */}
-                {heatmapDataSercice.length > 0 && (
-                    <div className="mb-8">
-                        <Heatmap data={heatmapDataSercice} tb={"Service"} />
                     </div>
                 )}
 
