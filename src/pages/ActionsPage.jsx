@@ -365,7 +365,7 @@ export default function ActionsPage() {
                       {action.designation && <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">{action.designation}</span>}
                     </div>
 
-                    {action.ai_confidence && (
+                    {action.ai_confidence !== null && action.ai_confidence !== undefined && (
                       <div className="mt-3 flex items-center gap-2">
                         <span className="text-xs text-gray-500">Confiance IA :</span>
                         <div className="flex-1 max-w-xs bg-gray-200 rounded-full h-2">
