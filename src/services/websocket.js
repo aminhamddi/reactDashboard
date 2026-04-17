@@ -14,9 +14,9 @@ class WebSocketService {
 
         // Auto-detect WebSocket URL from current page location
         const wsHost = import.meta.env.VITE_WS_HOST || window.location.hostname;
-        const wsPort = window.location.port ? `:${window.location.port}` : ':8000';
+        const wsPort = import.meta.env.VITE_API_PORT || '8000'; // Utiliser le port du backend
         const wsProtocol = 'ws:';
-        const wsUrl = `${wsProtocol}//${wsHost}${wsPort}/ws/${plant}`;
+        const wsUrl = `${wsProtocol}//${wsHost}:${wsPort}/ws/${plant}`;
         console.log(`Connexion WebSocket Dashboard à : ${wsUrl}`);
 
         try {

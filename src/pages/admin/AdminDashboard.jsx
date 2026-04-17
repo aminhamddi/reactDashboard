@@ -1,7 +1,7 @@
 // dashboard-web/src/pages/admin/AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { getQuestions, getUsers, getCategories, getGravites, getPlants, getServices } from '../../services/adminApi';
+import { getQuestions, getUsers, getCategories, getGravites, getPlants, getServices, getProjects } from '../../services/adminApi';
 import { getUser } from '../../services/auth';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,13 +26,14 @@ export default function AdminDashboard() {
     const loadStats = async () => {
         try {
             setLoading(true);
-            const [plantsRes, servicesRes, questionsRes, usersRes, categoriesRes, gravitesRes] = await Promise.all([
+            const [plantsRes, servicesRes, questionsRes, usersRes, categoriesRes, gravitesRes, projectsRes] = await Promise.all([
                 getPlants().catch(() => ({ data: [] })),
                 getServices().catch(() => ({ data: [] })),
                 getQuestions().catch(() => ({ data: [] })),
                 getUsers().catch(() => ({ data: [] })),
                 getCategories().catch(() => ({ data: [] })),
                 getGravites().catch(() => ({ data: [] })),
+                getProjects().catch(() => ({ data: [] })),
             ]);
 
             setStats({
@@ -42,6 +43,7 @@ export default function AdminDashboard() {
                 users: usersRes.data.length,
                 categories: categoriesRes.data.length,
                 gravites: gravitesRes.data.length,
+                projects: projectsRes.data.length,
             });
         } catch (error) {
             console.error('Erreur chargement stats:', error);
@@ -115,6 +117,15 @@ export default function AdminDashboard() {
                         </div>
                         <p className="text-3xl font-bold text-purple-600">{stats.categories}</p>
                         <p className="text-xs text-gray-500 mt-1">Catégories</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-gray-600">Projets</h3>
+                            <span className="text-3xl">🚀</span>
+                        </div>
+                        <p className="text-3xl font-bold text-teal-600">{stats.projects}</p>
+                        <p className="text-xs text-gray-500 mt-1">Projets</p>
                     </div>
 
                     <div className="bg-white rounded-lg shadow-md p-6">

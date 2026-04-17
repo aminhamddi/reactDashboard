@@ -13,6 +13,7 @@ import AdminCategories from './pages/admin/AdminCategories';
 import AdminGravites from './pages/admin/AdminGravites';
 import AdminPlants from './pages/admin/AdminPlants';
 import AdminServices from './pages/admin/AdminServices';
+import AdminProjects from './pages/admin/AdminProjects';
 import { getToken, removeToken } from './services/auth';
 
 function App() {
@@ -147,6 +148,14 @@ function App() {
           element={
             <ProtectedAdminRoute>
               <AdminServices />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/projects"
+          element={
+            <ProtectedAdminRoute>
+              <AdminProjects />
             </ProtectedAdminRoute>
           }
         />

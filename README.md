@@ -70,6 +70,7 @@ Le serveur écoute sur toutes les interfaces (`0.0.0.0`).
 | `/login` | Connexion (email + mot de passe) |
 | `/dashboard` | Tableau de bord : scores, heatmap, ranking, matrice |
 | `/audits` | Liste de tous les audits avec filtres |
+| `/actions` | Actions correctives (manuelles + IA) avec accept/reject |
 | `/admin` | Vue d'ensemble admin (stats) |
 | `/admin/plants` | Gestion des usines + Target/ST Target |
 | `/admin/services` | Gestion des services |
@@ -78,11 +79,12 @@ Le serveur écoute sur toutes les interfaces (`0.0.0.0`).
 ## Fonctionnalités
 
 - **Score Cards** : score par usine avec target configurable et barre de progression
-- **Heatmap** : scores par catégorie × usine et par service × usine
+- **Heatmap** : scores par catégorie x usine et par service x usine
 - **Classement Site** : ranking des usines par score avec indicateurs visuels
 - **Classement Projet** : ranking des projets par score
-- **Matrice Service × Site** : tableau croisé avec scores et totaux
+- **Matrice Service x Site** : tableau croisé avec scores et totaux
 - **Temps réel** : WebSocket pour mise à jour automatique à la finalisation d'un audit
+- **Actions Correctives IA** : actions auto-générées par le module NLP avec badge IA, score de confiance, et boutons accepter/rejeter
 - **Admin CRUD** : gestion des usines, services, projets et utilisateurs
 
 ## Technologies

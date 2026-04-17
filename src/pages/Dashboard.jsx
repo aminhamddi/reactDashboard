@@ -52,7 +52,7 @@ export default function Dashboard() {
             wsService.connect(token);
 
             const handleAuditFinalized = (data) => {
-                console.log('Nouvel audit:', data);
+                console.log('🚨 AUDIT_FINALIZED détecté dans Dashboard:', data);
                 setIsLive(true);
                 setLastUpdatedPlant(data.plant);
                 setTimeout(() => {
@@ -107,6 +107,8 @@ export default function Dashboard() {
                 const barChartData = statsRes.data.plants.map((plant) => ({
                     name: plant.name,
                     score: plant.score,
+                    target: plant.target,
+                    st_target: plant.st_target,
                     audits: plant.audits_count,
                 }));
                 setBarData(barChartData);
@@ -283,7 +285,7 @@ export default function Dashboard() {
 
                 {/* Classement Site & Projet */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    {siteRanking.length > 0 && <SiteRanking data={siteRanking} />}
+                    <SiteRanking data={siteRanking.length > 0 ? siteRanking : []} />
                     {projectRanking.length > 0 && <ProjectRanking data={projectRanking} />}
                 </div>
 

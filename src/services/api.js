@@ -142,12 +142,33 @@ export const closeAction = (id) =>
 export const rejectAction = (id) =>
     api.patch(`/api/dashboard/actions/${id}/reject`);
 
-// ===== ML =====
-export const prioritizeAction = (actionId) =>
-    api.post(`/api/ml/prioritize/${actionId}`);
+// ===== NLP =====
+export const analyzeComment = (text) =>
+    api.post('/api/nlp/analyze-comment', { text });
 
-export const getRecommendations = () =>
-    api.get('/api/ml/recommend');
+export const generateNlpActions = (auditId) =>
+    api.post(`/api/nlp/generate-actions/${auditId}`);
+
+export const getNlpActionsByAudit = (auditId) =>
+    api.get(`/api/nlp/actions/${auditId}`);
+
+export const getNlpActionsByType = (auditId) =>
+    api.get(`/api/nlp/actions/${auditId}/by-type`);
+
+export const acceptNlpAction = (actionId) =>
+    api.patch(`/api/nlp/actions/${actionId}/accept`);
+
+export const rejectNlpAction = (actionId) =>
+    api.delete(`/api/nlp/actions/${actionId}`);
+
+export const getNlpStats = () =>
+    api.get('/api/nlp/stats');
+
+export const getNlpTemplates = () =>
+    api.get('/api/nlp/templates');
+
+export const getNlpTemplatesByCategory = (category) =>
+    api.get(`/api/nlp/templates/${category}`);
 
 // ===== VISUALISATION =====
 export const getSiteRanking = () =>

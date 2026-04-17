@@ -9,6 +9,7 @@ import {
     Tooltip,
     Legend,
     ResponsiveContainer,
+    ReferenceLine,
 } from 'recharts';
 
 export default function PlantBarChart({ data }) {
@@ -47,10 +48,38 @@ export default function PlantBarChart({ data }) {
                             borderRadius: '8px',
                         }}
                     />
-                    <Legend wrapperStyle={{ fontSize: '14px' }} />
-                    <Bar dataKey="score" fill="#2196F3" radius={[8, 8, 0, 0]} />
+                    <ReferenceLine 
+                        y={80} 
+                        stroke="#FFC107" 
+                        strokeDasharray="5 5" 
+                        strokeWidth={3} 
+                    />
+                    <ReferenceLine 
+                        y={95} 
+                        stroke="#4CAF50" 
+                        strokeDasharray="5 5" 
+                        strokeWidth={3} 
+                    />
+                    <Bar dataKey="score" fill="#2196F3" name="Score" radius={[8, 8, 0, 0]} />
                 </BarChart>
             </ResponsiveContainer>
+
+            
+            {/* Custom Legend Footer */}
+            <div className="flex justify-center gap-6 mt-4 border-t pt-4">
+                <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-[#2196F3] rounded"></div>
+                    <span className="text-sm text-gray-600">Score</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-6 h-1 bg-[#FFC107] border-t-2 border-b-2 border-[#FFC107] border-dashed"></div>
+                    <span className="text-sm text-gray-600 font-bold">Target (80%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-6 h-1 bg-[#4CAF50] border-t-2 border-b-2 border-[#4CAF50] border-dashed"></div>
+                    <span className="text-sm text-gray-600 font-bold">ST Target (95%)</span>
+                </div>
+            </div>
         </div>
     );
 }

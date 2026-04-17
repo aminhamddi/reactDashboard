@@ -20,6 +20,7 @@ export default function AdminLayout({ children }) {
         { path: '/admin/services', label: 'Services', icon: '🔧' },
         { path: '/admin/questions', label: 'Questions', icon: '❓' },
         { path: '/admin/categories', label: 'Catégories', icon: '📁' },
+        { path: '/admin/projects', label: 'Projets', icon: '🚀' },
         { path: '/admin/gravites', label: 'Gravités', icon: '⚠️' },
     ];
 
