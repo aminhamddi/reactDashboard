@@ -5,6 +5,8 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Audits from './pages/Audits';
 import ActionsPage from './pages/ActionsPage';
+import PlantChartsPage from './pages/PlantChartsPage';
+import ProjectChartsPage from './pages/ProjectChartsPage';
 import ProtectedAdminRoute from './components/admin/ProtectedAdminRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminQuestions from './pages/admin/AdminQuestions';
@@ -92,6 +94,14 @@ function App() {
         <Route
           path="/actions"
           element={isAuthenticated ? <ActionsPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/plants"
+          element={isAuthenticated ? <PlantChartsPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/projects"
+          element={isAuthenticated ? <ProjectChartsPage /> : <Navigate to="/login" />}
         />
 
         {/* Admin routes (protected) */}

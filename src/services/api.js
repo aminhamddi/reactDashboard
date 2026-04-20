@@ -180,4 +180,24 @@ export const getProjectRanking = () =>
 export const getServiceMatrix = () =>
     api.get('/api/dashboard/service-matrix');
 
+// ===== PLANT & PROJECT CHARTS =====
+export const getAllPlantsHistory = (months = 6) =>
+    api.get('/api/dashboard/plants/all-history', { params: { months } });
+
+export const getPlantHistory = (plantName, months = 6) =>
+    api.get(`/api/dashboard/plants/${encodeURIComponent(plantName)}/history`, { params: { months } });
+
+export const getAllProjectsHistory = (months = 6) =>
+    api.get('/api/dashboard/projects/all-history', { params: { months } });
+
+export const getProjectHistory = (projectId, months = 6) =>
+    api.get(`/api/dashboard/projects/${projectId}/history`, { params: { months } });
+
+// ===== SERVICE HISTORY BY PLANT/PROJECT =====
+export const getServicesByPlantHistory = (months = 6) =>
+    api.get('/api/dashboard/services/by-plant/history', { params: { months } });
+
+export const getServicesByProjectHistory = (months = 6) =>
+    api.get('/api/dashboard/services/by-project/history', { params: { months } });
+
 export default api;

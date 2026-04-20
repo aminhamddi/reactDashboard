@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
     getDashboardStats,
     getChartsData,
@@ -9,6 +9,10 @@ import {
     getServiceMatrix,
     getActionsStats,
     getDeviationsByService,
+    getAllPlantsHistory,
+    getAllProjectsHistory,
+    getServicesByPlantHistory,
+    getServicesByProjectHistory,
 } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { removeToken, getUser } from '../services/auth';
@@ -22,6 +26,17 @@ import Heatmap from '../components/Heatmap';
 import SiteRanking from '../components/SiteRanking';
 import ProjectRanking from '../components/ProjectRanking';
 import ServiceSiteMatrix from '../components/ServiceSiteMatrix';
+import {
+    BarChart as RechartsBar,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    ReferenceLine,
+    Cell,
+} from 'recharts';
 
 
 export default function Dashboard() {
@@ -35,6 +50,11 @@ export default function Dashboard() {
     const [serviceMatrix, setServiceMatrix] = useState(null);
     const [actionsStats, setActionsStats] = useState(null);
     const [deviationsByService, setDeviationsByService] = useState(null);
+    const [plantsHistory, setPlantsHistory] = useState([]);
+    const [projectsHistory, setProjectsHistory] = useState([]);
+    const [servicesByPlant, setServicesByPlant] = useState([]);
+    const [servicesByProject, setServicesByProject] = useState([]);
+    const [chartMonths, setChartMonths] = useState(6);
     const [isLive, setIsLive] = useState(false);
     const [lastUpdatedPlant, setLastUpdatedPlant] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -71,11 +91,39 @@ export default function Dashboard() {
         }
     }, []);
 
+    // Ref pour toujours avoir la dernière valeur de chartMonths
+    const chartMonthsRef = useRef(chartMonths);
+    chartMonthsRef.current = chartMonths;
+
+    // Charge les charts mensuels (plants, projects, services)
+    const loadMonthlyCharts = useCallback(async () => {
+        try {
+            const months = chartMonthsRef.current;
+            const [plantsRes, projectsRes, servicesPlantRes, servicesProjectRes] = await Promise.all([
+                getAllPlantsHistory(months),
+                getAllProjectsHistory(months),
+                getServicesByPlantHistory(months),
+                getServicesByProjectHistory(months),
+            ]);
+            setPlantsHistory(plantsRes.data.plants || []);
+            setProjectsHistory(projectsRes.data.projects || []);
+            setServicesByPlant(servicesPlantRes.data.plants || []);
+            setServicesByProject(servicesProjectRes.data.projects || []);
+        } catch (err) {
+            console.error('❌ Erreur chargement charts mensuels:', err);
+        }
+    }, []);
+
+    // Recharge les charts mensuels quand la période change
+    useEffect(() => {
+        loadMonthlyCharts();
+    }, [chartMonths, loadMonthlyCharts]);
+
     const loadData = async () => {
         try {
             setLoading(true);
 
-            // CHARGER TOUTES LES DONNÉES
+            // CHARGER TOUTES LES DONNÉES (sans les charts mensuels)
             const [statsRes, chartsRes, categoryRes, heatmapRes, siteRankRes, projectRankRes, serviceMatrixRes, actionsStatsRes, deviationsRes] = await Promise.all([
                 getDashboardStats(),
                 getChartsData({ months: 6 }),
@@ -87,9 +135,6 @@ export default function Dashboard() {
                 getActionsStats().catch(() => ({ data: { total: 0, total_nlp: 0, par_statut: {}, par_type: {}, par_priorite: {} } })),
                 getDeviationsByService().catch(() => ({ data: { services: [], total: 0 } })),
             ]);
-
-            console.log('📊 Stats reçues:', statsRes.data);
-            console.log('📈 Charts reçus:', chartsRes.data);
 
             setStats(statsRes.data);
             setChartsData(chartsRes.data);
@@ -122,6 +167,13 @@ export default function Dashboard() {
             setLoading(false);
         }
     };
+
+    // Charger les charts mensuels après le chargement initial
+    useEffect(() => {
+        if (!loading) {
+            loadMonthlyCharts();
+        }
+    }, [loading]);
 
     const handleLogout = () => {
         wsService.disconnect();
@@ -292,6 +344,86 @@ export default function Dashboard() {
                 {/* Service × Site Matrix */}
                 {serviceMatrix && <ServiceSiteMatrix data={serviceMatrix} />}
 
+                {/* ===== PLANTS MONTHLY BARS ===== */}
+                <div className="mt-8">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-bold">Scores Mensuels par Plant</h2>
+                        <select
+                            value={chartMonths}
+                            onChange={(e) => {
+                                setChartMonths(parseInt(e.target.value));
+                                loadData();
+                            }}
+                            className="px-3 py-2 border rounded-lg text-sm bg-white"
+                        >
+                            <option value={3}>3 mois</option>
+                            <option value={6}>6 mois</option>
+                            <option value={12}>12 mois</option>
+                        </select>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {plantsHistory.map((plant) => (
+                            <PlantMonthlyBar key={plant.name} plant={plant} />
+                        ))}
+                    </div>
+                </div>
+
+                {/* ===== PROJECTS MONTHLY BARS ===== */}
+                {projectsHistory.length > 0 && (
+                    <div className="mt-8">
+                        <h2 className="text-xl font-bold mb-4">Scores Mensuels par Projet</h2>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {projectsHistory.map((project) => (
+                                <ProjectMonthlyBar key={project.id} project={project} />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* ===== RESULTS PAR SERVICE BY PLANT ===== */}
+                {servicesByPlant.length > 0 && (
+                    <div className="mt-8">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold">Résultats par Service - Plants (%)</h2>
+                            <select
+                                value={chartMonths}
+                                onChange={(e) => {
+                                    setChartMonths(parseInt(e.target.value));
+                                }}
+                                className="px-3 py-2 border rounded-lg text-sm bg-white"
+                            >
+                                <option value={1}>1 mois</option>
+                                <option value={2}>2 mois</option>
+                                <option value={3}>3 mois</option>
+                                <option value={6}>6 mois</option>
+                                <option value={12}>12 mois</option>
+                            </select>
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {servicesByPlant.map((plant) => (
+                                <ServicePlantChart key={plant.name} plant={plant} />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* ===== RESULTS PAR SERVICE BY PROJECT ===== */}
+                {servicesByProject.length > 0 && (
+                    <div className="mt-8">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold">Résultats par Service - Projets (%)</h2>
+                            <span className="text-sm text-gray-500">
+                                Période: {chartMonths} mois
+                            </span>
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {servicesByProject.map((project) => (
+                                <ServiceProjectChart key={project.name} project={project} />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Déviations par Service */}
                 {deviationsByService && deviationsByService.total > 0 && (
                     <div className="mt-8">
@@ -379,6 +511,204 @@ export default function Dashboard() {
                     </div>
                 )}
             </main>
+        </div>
+    );
+}
+
+// ===== HELPER COMPONENTS =====
+
+const getScoreColor = (score, target = 85, stTarget = 95) => {
+    if (score >= stTarget) return '#22c55e';
+    if (score >= target) return '#eab308';
+    return '#ef4444';
+};
+
+const formatMonth = (monthStr) => {
+    const [year, month] = monthStr.split('-');
+    const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+    return `${monthNames[parseInt(month) - 1]}`;
+};
+
+function PlantMonthlyBar({ plant }) {
+    const chartData = plant.months.map((m) => ({
+        month: formatMonth(m.month),
+        score: m.score,
+    }));
+
+    return (
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="flex justify-between items-center mb-2">
+                <h4 className="font-semibold text-gray-700 text-sm">{plant.name}</h4>
+                <div className="flex gap-3 text-xs">
+                    <span className="text-gray-500">Target: <span className="font-medium text-yellow-600">{plant.target}%</span></span>
+                    <span className="text-gray-500">ST: <span className="font-medium text-green-600">{plant.st_target}%</span></span>
+                </div>
+            </div>
+            <ResponsiveContainer width="100%" height={120}>
+                <RechartsBar data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="2 2" stroke="#e5e7eb" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#6b7280' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
+                    <Tooltip
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '12px' }}
+                        formatter={(value) => [`${value}%`, 'Score']}
+                    />
+                    <ReferenceLine y={plant.target} stroke="#eab308" strokeDasharray="3 3" />
+                    <ReferenceLine y={plant.st_target} stroke="#22c55e" strokeDasharray="3 3" />
+                    <Bar dataKey="score" radius={[3, 3, 0, 0]}>
+                        {chartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={getScoreColor(entry.score, plant.target, plant.st_target)} />
+                        ))}
+                    </Bar>
+                </RechartsBar>
+            </ResponsiveContainer>
+        </div>
+    );
+}
+
+function ProjectMonthlyBar({ project }) {
+    const chartData = project.months.map((m) => ({
+        month: formatMonth(m.month),
+        score: m.score,
+    }));
+
+    return (
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="flex justify-between items-center mb-2">
+                <h4 className="font-semibold text-gray-700 text-sm">{project.name}</h4>
+                <span className="text-xs text-gray-500">Target: <span className="font-medium text-yellow-600">{project.target}%</span></span>
+            </div>
+            <ResponsiveContainer width="100%" height={100}>
+                <RechartsBar data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="2 2" stroke="#e5e7eb" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#6b7280' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
+                    <Tooltip
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '12px' }}
+                        formatter={(value) => [`${value}%`, 'Score']}
+                    />
+                    <ReferenceLine y={project.target} stroke="#eab308" strokeDasharray="3 3" />
+                    <Bar dataKey="score" radius={[3, 3, 0, 0]}>
+                        {chartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={getScoreColor(entry.score, project.target, 100)} />
+                        ))}
+                    </Bar>
+                </RechartsBar>
+            </ResponsiveContainer>
+        </div>
+    );
+}
+
+// Service by Plant Chart - Grouped bar chart showing all services for a plant
+function ServicePlantChart({ plant }) {
+    if (!plant.services || plant.services.length === 0) {
+        return null;
+    }
+
+    // Prepare data for grouped bars
+    const months = plant.services[0]?.months || [];
+    const chartData = months.map((m, idx) => {
+        const row = { month: formatMonth(m.month) };
+        plant.services.forEach((service) => {
+            row[service.name] = service.months[idx]?.score || 0;
+        });
+        return row;
+    });
+
+    const colors = ['#3b82f6', '#22c55e', '#eab308', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
+
+    return (
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="flex justify-between items-center mb-2">
+                <h4 className="font-semibold text-gray-700 text-sm">{plant.name}</h4>
+                <span className="text-xs text-gray-500">{plant.services.length} services</span>
+            </div>
+            <ResponsiveContainer width="100%" height={180}>
+                <RechartsBar data={chartData} margin={{ top: 5, right: 5, left: -15, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="2 2" stroke="#e5e7eb" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#6b7280' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
+                    <Tooltip
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '11px' }}
+                        formatter={(value, name) => [`${value}%`, name]}
+                    />
+                    <ReferenceLine y={85} stroke="#eab308" strokeDasharray="3 3" />
+                    <ReferenceLine y={95} stroke="#22c55e" strokeDasharray="3 3" />
+                    {plant.services.map((service, idx) => (
+                        <Bar
+                            key={service.name}
+                            dataKey={service.name}
+                            fill={colors[idx % colors.length]}
+                            radius={[2, 2, 0, 0]}
+                        />
+                    ))}
+                </RechartsBar>
+            </ResponsiveContainer>
+            <div className="flex flex-wrap gap-2 mt-2 justify-center">
+                {plant.services.map((service, idx) => (
+                    <div key={service.name} className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded" style={{ backgroundColor: colors[idx % colors.length] }}></div>
+                        <span className="text-xs text-gray-600">{service.name}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// Service by Project Chart - Grouped bar chart showing all services for a project
+function ServiceProjectChart({ project }) {
+    if (!project.services || project.services.length === 0) {
+        return null;
+    }
+
+    // Prepare data for grouped bars
+    const months = project.services[0]?.months || [];
+    const chartData = months.map((m, idx) => {
+        const row = { month: formatMonth(m.month) };
+        project.services.forEach((service) => {
+            row[service.name] = service.months[idx]?.score || 0;
+        });
+        return row;
+    });
+
+    const colors = ['#3b82f6', '#22c55e', '#eab308', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
+
+    return (
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="flex justify-between items-center mb-2">
+                <h4 className="font-semibold text-gray-700 text-sm">{project.name}</h4>
+                <span className="text-xs text-gray-500">{project.services.length} services</span>
+            </div>
+            <ResponsiveContainer width="100%" height={160}>
+                <RechartsBar data={chartData} margin={{ top: 5, right: 5, left: -15, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="2 2" stroke="#e5e7eb" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#6b7280' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
+                    <Tooltip
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '11px' }}
+                        formatter={(value, name) => [`${value}%`, name]}
+                    />
+                    <ReferenceLine y={85} stroke="#eab308" strokeDasharray="3 3" />
+                    <ReferenceLine y={95} stroke="#22c55e" strokeDasharray="3 3" />
+                    {project.services.map((service, idx) => (
+                        <Bar
+                            key={service.name}
+                            dataKey={service.name}
+                            fill={colors[idx % colors.length]}
+                            radius={[2, 2, 0, 0]}
+                        />
+                    ))}
+                </RechartsBar>
+            </ResponsiveContainer>
+            <div className="flex flex-wrap gap-2 mt-2 justify-center">
+                {project.services.map((service, idx) => (
+                    <div key={service.name} className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded" style={{ backgroundColor: colors[idx % colors.length] }}></div>
+                        <span className="text-xs text-gray-600">{service.name}</span>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
